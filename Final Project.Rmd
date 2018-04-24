@@ -1,0 +1,92 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+bank=read.csv("C:\\Users\\Shivakumar Panuganti\\Downloads\\bank_train.csv")
+str(bank)
+```
+
+```{r}
+#number of numeric variables
+x<-sapply(bank,is.numeric)
+bank_numeric<-bank[,x]
+head(bank_numeric)
+```
+
+```{r}
+#number of factor variables
+y<-sapply(bank, is.factor)
+bank_factor<-bank[,y]
+head(bank_factor)
+```
+
+```{r}
+#missing values treatment
+library(Amelia)
+missmap(bank, y.at = 1,y.labels = "",col=c("red","black"),legend = FALSE)
+sum(is.na(bank))
+```
+
+```{r}
+#EDA
+boxplot(duration~y,data=bank, main="Finding Overlap between predictor and outcome",
+        yaxt="n", xlab="Duration", horizontal=TRUE,
+        col=terrain.colors(3))
+
+```
+
+```{r}
+boxplot(duration~y,data=bank,col="red")
+```
+
+```{r}
+#################Plotting:Finding Overlap between Predictors###############
+##Similarly boundry can be researched between two predictors also
+library(ggplot2)
+qplot(bank$pdays,bank$duration,data=bank,colour=y,size=3)
+#See RelationFinder.r for all combinations
+```
+
+```{r}
+#################Plotting:General Visualization#################
+par(mfrow=c(2,2),las=2)
+boxplot( duration ~ y, data=bank,col="blue")
+boxplot( pdays ~ y, data=bank,col="red")
+plot( bank$housing, bank$y,
+      xlab="Housing", ylab="Become Customer?", col=c("red","green"))
+plot( bank$contact, bank$y,
+      xlab="Contact Type", ylab="Become Customer?", col=c("red","green"))
+```
+
+```{r}
+#################Decision Tree#################
+library(rpart)
+library(rpart.plot)
+library(rattle)
+library(caret)
+library(C50)
+dt_model<- rpart(y ~ ., data = bank)
+fancyRpartPlot(dt_model)
+summary(dt_model)
+```
+
+```{r}
+#################Testing Decision Tree#################
+test=read.csv("C:\\Users\\Shivakumar Panuganti\\Downloads\\bank_test.csv")
+predictions <- predict(dt_model, test, type = "class")
+
+```
+
+```{r}
+#What is predicted
+table(predictions)
+```
+
+```{r}
+# Lets look at the confusion matrix
+confusion.matrix <- prop.table(table(predictions, test$y))
+confusion.matrix
+confusionMatrix(predictions,test$y)
+```
+
